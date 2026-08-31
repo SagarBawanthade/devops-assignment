@@ -1,82 +1,135 @@
 # Robot Explorer Bridge
 
-Bridges the hosted static page at
-`https://sagarbawanthade.github.io/devops-assignment/` to a local Python
-process, in real time, using a small Chrome extension and a local
-WebSocket server.
+Bridges the hosted Robot Explorer web app to a local Python program in real time using a WebSocket connection.
 
-## How it works
+The web application remains a fully static website hosted on GitHub Pages. No backend server is added to the hosting environment.
 
-```
-Hosted page (window.postMessage)
-        |
-        v
-Content script (extension, runs in the page's tab)
-        |
-        v
-Background service worker  <-- WebSocket -->  Python server (localhost:8765)
+## How It Works
+
+```text
+Hosted Web App (GitHub Pages)
+            │
+            │ WebSocket
+            ▼
+Local Python Server (localhost:8765)
 ```
 
-- The page already broadcasts `window.postMessage({ type: "robot-state", ... })`
-  every animation frame, and listens for
-  `window.postMessage({ type: "robot-command", ... })` to drive the robot.
-- The extension's **content script** listens for `robot-state` messages and
-  forwards them to the **background service worker**.
-- The background worker holds a WebSocket connection to a local Python
-  server and relays state to it in real time, and relays any
-  `robot-command` messages sent back from Python into the tab.
+The browser establishes a WebSocket connection directly to a Python server running on the local machine.
 
-No backend was added to the hosted app — it's still pure static files.
-The extension and Python server run entirely on the local machine.
+The web page continuously streams the robot's position and rotation to Python. Python can also send commands back to the browser, allowing the robot to be controlled remotely.
+
+This creates a real-time, bidirectional bridge between the hosted static page and local Python code.
+
+## Features
+
+### Read Live State from the Browser
+
+The browser streams robot state data to Python in real time:
+
+```text
+x=12.54 z=31.28 rot=1.57
+x=12.60 z=31.35 rot=1.57
+x=12.68 z=31.43 rot=1.57
+```
+
+### Send Commands from Python
+
+Python can send commands back to the browser:
+
+```json
+{
+  "forward": true
+}
+```
+
+The browser receives the command and drives the robot accordingly.
 
 ## Setup
 
-### 1. Python server
+### 1. Start the Python Server
+
 ```bash
 cd python
 pip install websockets
 python server.py
 ```
-Leave this running — it will print live `x / z / rotationY` as the robot
-moves, and after a client connects it will also demo a "forward" command
-being pushed back into the browser.
 
-### 2. Load the extension
-1. Open `chrome://extensions`
-2. Enable "Developer mode" (top right)
-3. Click "Load unpacked", select the `extension/` folder
-4. Open `https://sagarbawanthade.github.io/devops-assignment/` in a new tab
+You should see:
 
-Once the tab is open, the extension icon's background worker connects to
-`ws://localhost:8765` automatically, and state should start streaming into
-the Python terminal within a second.
+```text
+Listening on ws://localhost:8765
+```
 
-## Why this mechanism
+### 2. Open the Hosted Application
 
-I chose a **Chrome extension + local WebSocket server** over the
-alternatives (Chrome DevTools Protocol, Playwright/Selenium automation,
-WebRTC, native messaging) because it matches the scenario in the prompt
-most literally: a person has the *already-hosted* page open in their
-normal browser, and the bridge taps into that live tab, rather than Python
-spinning up and owning its own browser instance (which is what CDP/
-Playwright would do). It's also lower-complexity than native messaging
-(no manifest registration for a native host) or WebRTC (no signaling/ICE
-setup needed for a purely local machine), while still being fully
-real-time and push-based rather than polling.
+Open:
 
-## Trade-offs (honest accounting)
+```text
+https://sagarbawanthade.github.io/devops-assignment/
+```
 
-- **Latency:** sub-second, effectively one WebSocket hop each way — driven
-  by the page's own per-frame `postMessage` broadcast.
-- **Security:** the WebSocket server has no auth and listens on
-  `localhost` only. Fine for a local dev bridge; for anything beyond a
-  take-home I'd add a token handshake and restrict the extension's
-  `host_permissions` more tightly (already scoped to just this page's
-  origin, not `<all_urls>`).
-- **Browser permissions required:** the user has to manually load an
-  unpacked extension (`chrome://extensions` → Developer mode). That's a
-  real friction point compared to, say, a script that "just runs" — it's
-  the cost of not touching the page's own hosting/build.
-- **Fragility:** if the Python server isn't running when the tab loads,
-  the background worker just retries every 2s — no data is lost, but
-  nothing is buffered while disconnected either.
+When the connection is established, the browser console will show:
+
+```text
+Connected to Python bridge
+```
+
+The Python terminal will immediately start receiving live robot state updates.
+
+## Project Structure
+
+```text
+.
+├── index.html
+├── python
+│   └── server.py
+└── README.md
+```
+
+## Why I Chose This Approach
+
+I chose a direct WebSocket connection because it is the simplest way to achieve real-time communication while keeping the application completely static.
+
+The hosted web page remains just HTML, CSS, and JavaScript. No backend infrastructure, browser extension, or automation framework is required.
+
+Compared to browser-extension-based approaches, this solution requires less setup and works across modern browsers without additional installation steps.
+
+## Trade-offs
+
+### Advantages
+
+- Real-time communication
+- Low latency
+- Simple architecture
+- No browser extension required
+- No backend added to the hosted application
+- Easy to reproduce on another machine
+
+### Limitations
+
+- Requires a local Python server to be running
+- The browser must be able to connect to localhost
+- No authentication is implemented (acceptable for a local development bridge)
+
+## Demo
+
+The demonstration shows:
+
+1. The hosted browser page streaming live robot state to Python.
+2. Python receiving updates in real time.
+3. Python sending commands back to the browser.
+4. The robot responding immediately inside the hosted page.
+
+## Assignment Requirements Covered
+
+✅ Works against a hosted URL
+
+✅ Real-time communication (sub-second latency)
+
+✅ Reads live robot state without screenshot scraping
+
+✅ Sends commands from Python back to the browser
+
+✅ Keeps the application hosting fully static
+
+✅ Includes clear setup instructions and architecture explanation
