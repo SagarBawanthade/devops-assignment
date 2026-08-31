@@ -36,6 +36,8 @@
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
   <script type="module">
+
+
     import * as THREE from "three";
 
     // --- scene / camera / renderer ---
@@ -201,7 +203,7 @@
 
       window.postMessage(state, "*");
 
-      if (ws.readyState === WebSocket.OPEN) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(state));
       }
 
@@ -218,7 +220,8 @@
       if (cmd.right) keys.add("d"); else keys.delete("d");
       if (cmd.run) keys.add("shift"); else keys.delete("shift");
     });
-    animate();
+
+
 
 
 
@@ -252,6 +255,10 @@
         console.error("Invalid command from Python", err);
       }
     };
+
+
+    animate();
+
 
 
   </script>
