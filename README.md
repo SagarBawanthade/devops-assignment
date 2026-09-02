@@ -1,30 +1,57 @@
 # Robot Explorer Bridge
 
-Bridges the hosted Robot Explorer web app to a local Python program in real time using a WebSocket connection.
+A real-time bridge between a hosted static Three.js application and a local Python program using WebSockets.
 
-The web application remains a fully static website hosted on GitHub Pages. No backend server is added to the hosting environment.
+The Robot Explorer application is hosted on GitHub Pages as a completely static website. A local Python script connects to the running browser session and can both receive live robot state updates and send commands back to the robot.
 
-## How It Works
+---
+
+## Assignment Goal
+
+The challenge was to prove that a fully static hosted web application can still communicate with a Python program running on a local machine without converting the website into a traditional client-server application.
+
+This project demonstrates that by creating a direct WebSocket connection between the browser and a local Python process.
+
+---
+
+## Architecture
 
 ```text
 Hosted Web App (GitHub Pages)
             │
             │ WebSocket
             ▼
-Local Python Server (localhost:8765)
+Local Python Program
+     ws://localhost:8765
 ```
 
-The browser establishes a WebSocket connection directly to a Python server running on the local machine.
+The website remains a static HTML page hosted on GitHub Pages.
 
-The web page continuously streams the robot's position and rotation to Python. Python can also send commands back to the browser, allowing the robot to be controlled remotely.
+When the page loads, it opens a WebSocket connection to a Python server running on the user's machine.
 
-This creates a real-time, bidirectional bridge between the hosted static page and local Python code.
+This creates a real-time two-way communication channel:
+
+- Browser → Python
+  - Sends robot position and rotation continuously.
+
+- Python → Browser
+  - Sends movement commands to control the robot.
+
+---
+
+## Hosted Application
+
+Open the application:
+
+https://sagarbawanthade.github.io/devops-assignment/
+
+---
 
 ## Features
 
-### Read Live State from the Browser
+### 1. Read Live State from the Browser
 
-The browser streams robot state data to Python in real time:
+The browser continuously streams robot state data to Python:
 
 ```text
 x=12.54 z=31.28 rot=1.57
@@ -32,7 +59,11 @@ x=12.60 z=31.35 rot=1.57
 x=12.68 z=31.43 rot=1.57
 ```
 
-### Send Commands from Python
+This data is generated directly from the Three.js scene and is not obtained through screenshots or image processing.
+
+---
+
+### 2. Send Commands from Python
 
 Python can send commands back to the browser:
 
@@ -42,94 +73,217 @@ Python can send commands back to the browser:
 }
 ```
 
-The browser receives the command and drives the robot accordingly.
+The browser receives the command and applies it to the robot controls.
 
-## Setup
+Example:
 
-### 1. Start the Python Server
-
-```bash
-cd python
-pip install websockets
-python server.py
+```python
+await websocket.send(
+    json.dumps({
+        "forward": True
+    })
+)
 ```
 
-You should see:
+The robot immediately starts moving forward inside the hosted application.
+
+---
+
+## Project Structure
+
+```text
+devops-assignment/
+│
+├── index.html
+│
+├── python/
+│   └── server.py
+│
+└── README.md
+```
+
+---
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/sagarbawanthade/devops-assignment.git
+
+cd devops-assignment
+```
+
+---
+
+### 2. Create a Virtual Environment (Optional)
+
+Linux / macOS:
+
+```bash
+python -m venv .venv
+
+source .venv/bin/activate
+```
+
+Windows:
+
+```bash
+python -m venv .venv
+
+.venv\Scripts\activate
+```
+
+---
+
+### 3. Install Dependencies
+
+```bash
+pip install websockets
+```
+
+---
+
+### 4. Start the Python Server
+
+```bash
+python python/server.py
+```
+
+Expected output:
 
 ```text
 Listening on ws://localhost:8765
 ```
 
-### 2. Open the Hosted Application
+---
 
-Open:
+### 5. Open the Hosted Website
+
+Visit:
 
 ```text
 https://sagarbawanthade.github.io/devops-assignment/
 ```
 
-When the connection is established, the browser console will show:
+Open Developer Tools (F12) and you should see:
 
 ```text
 Connected to Python bridge
 ```
 
-The Python terminal will immediately start receiving live robot state updates.
+The Python terminal will begin receiving robot state updates immediately.
 
-## Project Structure
+---
+
+## Example Output
+
+Python terminal:
 
 ```text
-.
-├── index.html
-├── python
-│   └── server.py
-└── README.md
+Browser connected
+
+x=0.00 z=14.21 rot=0.00
+x=0.00 z=14.29 rot=0.00
+x=0.00 z=14.37 rot=0.00
+x=0.00 z=14.46 rot=0.00
 ```
 
-## Why I Chose This Approach
+This confirms that the hosted browser page is sending live state information to the local Python program.
 
-I chose a direct WebSocket connection because it is the simplest way to achieve real-time communication while keeping the application completely static.
+---
 
-The hosted web page remains just HTML, CSS, and JavaScript. No backend infrastructure, browser extension, or automation framework is required.
+## Why I Chose WebSockets
 
-Compared to browser-extension-based approaches, this solution requires less setup and works across modern browsers without additional installation steps.
+I chose WebSockets because they provide a simple and reliable way to achieve real-time two-way communication.
+
+Benefits of this approach:
+
+- Very low latency
+- Easy to understand
+- Minimal code
+- No browser extension required
+- No additional hosted backend required
+- Works directly with a static website
+
+Alternative approaches such as browser extensions, WebRTC, browser automation tools, or external relay servers would add extra complexity for this assignment.
+
+---
 
 ## Trade-offs
 
 ### Advantages
 
 - Real-time communication
-- Low latency
+- Two-way data exchange
 - Simple architecture
-- No browser extension required
-- No backend added to the hosted application
-- Easy to reproduce on another machine
+- Easy to reproduce
+- Keeps hosting fully static
+- No screenshot scraping
 
 ### Limitations
 
 - Requires a local Python server to be running
-- The browser must be able to connect to localhost
-- No authentication is implemented (acceptable for a local development bridge)
+- Browser must be able to reach localhost
+- No authentication is implemented
+- Intended for local development and demonstration purposes
 
-## Demo
+---
 
-The demonstration shows:
+## Requirements Checklist
 
-1. The hosted browser page streaming live robot state to Python.
-2. Python receiving updates in real time.
-3. Python sending commands back to the browser.
-4. The robot responding immediately inside the hosted page.
+### Works against a hosted URL
 
-## Assignment Requirements Covered
+✅ Yes
 
-✅ Works against a hosted URL
+The application runs from GitHub Pages and not from `localhost` or `file://`.
 
-✅ Real-time communication (sub-second latency)
+---
 
-✅ Reads live robot state without screenshot scraping
+### Real-time communication
 
-✅ Sends commands from Python back to the browser
+✅ Yes
 
-✅ Keeps the application hosting fully static
+Robot state is streamed continuously through WebSockets with sub-second latency.
 
-✅ Includes clear setup instructions and architecture explanation
+---
+
+### Read live state from the page
+
+✅ Yes
+
+Python receives robot coordinates and rotation directly from the running Three.js application.
+
+---
+
+### Write into the page
+
+✅ Yes
+
+Python can send commands to the browser that control robot movement.
+
+---
+
+### Static hosting remains unchanged
+
+✅ Yes
+
+The website is still a plain static HTML application hosted on GitHub Pages.
+
+No backend was added to the hosting environment.
+
+---
+
+### Code is understandable
+
+✅ Yes
+
+The solution uses a straightforward WebSocket connection with minimal code and clear data flow.
+
+---
+
+## Conclusion
+
+This project demonstrates that a completely static web application can communicate with a local Python program in real time.
+
+The hosted Three.js application streams robot state data to Python while also accepting commands from Python, creating a full bidirectional bridge without introducing any backend infrastructure to the hosted website.
