@@ -228,6 +228,14 @@ Alternative approaches such as browser extensions, WebRTC, browser automation to
 - No authentication is implemented
 - Intended for local development and demonstration purposes
 
+### Browser Compatibility
+
+The bridge is based on standard WebSocket APIs supported by modern browsers.
+
+Since the solution does not rely on browser extensions, browser automation tools, or browser-specific features, it can work in any modern browser that supports WebSockets and ES6 modules.
+
+The prototype was tested using Google Chrome.
+
 ---
 
 ## Requirements Checklist
