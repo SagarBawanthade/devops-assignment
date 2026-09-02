@@ -20,14 +20,25 @@ async def handler(websocket):
 
 
 async def read_state(websocket):
-    """Continuously print the robot's live state as it streams in."""
+    """
+    Continuously receive the robot's live state, but only print it a few
+    times a second (not on every single frame) so it doesn't flood the
+    terminal and bury the '>' input prompt.
+    """
+    last_print = 0
+    PRINT_INTERVAL = 0.3  # seconds between printed updates
+
     async for message in websocket:
         data = json.loads(message)
-        print(
-            f"x={data['x']:.2f} "
-            f"z={data['z']:.2f} "
-            f"rot={data['rotationY']:.2f}"
-        )
+        now = asyncio.get_event_loop().time()
+        if now - last_print >= PRINT_INTERVAL:
+            last_print = now
+            print(
+                f"\r[state] x={data['x']:.2f} "
+                f"z={data['z']:.2f} "
+                f"rot={data['rotationY']:.2f}"
+                "          "
+            )
 
 
 async def command_input_loop(websocket):
@@ -67,7 +78,7 @@ async def command_input_loop(websocket):
             print("Unknown command. Use: forward | back | left | right | run | stop | quit")
             continue
 
-        print(f"Sending: {state}")
+        print(f"[cmd] Sending: {state}")
         await websocket.send(json.dumps(state))
 
 
