@@ -63,9 +63,9 @@ devops-assignment/
 
 ---
 
-- **If the Python server restarts, the browser's WebSocket does not auto-reconnect, you have to refresh the page to re-establish the connection.**
 
 ## Limitations
 
+- **If the Python server restarts, the browser's WebSocket does not auto-reconnect, you have to refresh the page to re-establish the connection.**
 - Requires the local Python server to be running; no authentication is implemented.
 - Intended for local development/demo purposes, not production use.
