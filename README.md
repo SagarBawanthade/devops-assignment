@@ -68,5 +68,4 @@ devops-assignment/
 ## Limitations
 
 - Requires the local Python server to be running; no authentication is implemented.
-- **If the Python server restarts, the browser's WebSocket does not auto-reconnect, you have to refresh the page to re-establish the connection.**
 - Intended for local development/demo purposes, not production use.
