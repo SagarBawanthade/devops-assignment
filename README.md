@@ -4,6 +4,8 @@ A real-time bridge between a hosted static Three.js app and a local Python progr
 
 **Hosted app:** https://sagarbawanthade.github.io/devops-assignment/
 
+**Demo Video:** https://drive.google.com/file/d/1UfnvtJUhDwwlAF-FTxORy4B5SNnpDmQM/view
+
 The Three.js robot scene is hosted as a plain static site on GitHub Pages. When it loads, it opens a WebSocket connection to a Python script running on your machine, no backend is added to the hosting, and no build step is required.
 
 - **Browser → Python:** streams live robot position/rotation every frame.
