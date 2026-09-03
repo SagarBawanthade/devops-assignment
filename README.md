@@ -15,6 +15,18 @@ The Three.js robot scene is hosted as a plain static site on GitHub Pages. When 
 
 I chose a direct WebSocket connection because it gives real-time, sub-second, two-way communication with minimal code and no extra moving parts, no browser extension, no separate relay server, no automation tooling. The hosted page stays a plain static file, and the local Python process just listens on `ws://localhost:8765`; alternatives like a Chrome extension or WebRTC would solve the same problem but add setup complexity this assignment doesn't need.
 
+## Browser Compatibility
+
+This solution uses the standard WebSocket API, which is supported by all modern browsers:
+
+No browser extensions, plugins, or special browser configuration are required.
+
+The browser must be able to connect to the local Python process at:
+
+ws://localhost:8765
+
+The project has been tested primarily in Brave Browser.
+
 ---
 
 ## Project Structure
